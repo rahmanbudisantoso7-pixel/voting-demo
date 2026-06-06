@@ -1,0 +1,72 @@
+// Prisma schema for SenatVote
+// For local dev (SQLite): set provider to "sqlite" and DATABASE_URL="file:./dev.db"
+// For Vercel (PostgreSQL): set provider to "postgresql" and DATABASE_URL from Supabase
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  hasVoted  Boolean  @default(false)
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Candidate {
+  id        String   @id @default(uuid())
+  number    Int      @unique
+  name      String
+  prodi     String
+  photo     String?
+  vision    String   @db.Text
+  mission   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  votes Vote[]
+
+  @@map("candidates")
+}
+
+model Vote {
+  id          String    @id @default(uuid())
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@map("votes")
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  votingOpen  Boolean  @default(false)
+  startDate   DateTime?
+  endDate     DateTime?
+  electionName String  @default("Pemilihan Ketua Senat Kampus")
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userEmail String
+  action    String
+  details   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([userEmail])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
