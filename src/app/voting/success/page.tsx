@@ -9,6 +9,8 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+export const dynamic = "force-dynamic";
+
 export default async function VotingSuccessPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");

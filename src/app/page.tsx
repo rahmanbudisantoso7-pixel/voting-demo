@@ -7,6 +7,8 @@ import { Navbar } from "@/components/navbar";
 import { Calendar, ShieldCheck, Vote, Users, BarChart3, Lock } from "lucide-react";
 import { formatDateOnly } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [settings, candidateCount, totalUsers, totalVotes] = await Promise.all([
     prisma.setting.findFirst(),
