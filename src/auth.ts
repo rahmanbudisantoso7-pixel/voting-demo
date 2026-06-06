@@ -1,4 +1,5 @@
 import NextAuth, { type DefaultSession } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import { authConfig, isDemoMode } from "@/auth.config";
 import { prisma } from "@/lib/prisma";
 import { isValidCampusEmail, isAdminEmail } from "@/lib/utils";
@@ -16,6 +17,43 @@ declare module "next-auth" {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
+  providers: [
+    ...authConfig.providers,
+    ...(isDemoMode
+      ? [
+          Credentials({
+            id: "demo",
+            name: "Demo Login",
+            credentials: {
+              email: { label: "Email", type: "email" },
+              name: { label: "Nama", type: "text" },
+              role: { label: "Role", type: "text" },
+            },
+            async authorize(credentials) {
+              const email = (credentials?.email as string)?.toLowerCase();
+              const name = (credentials?.name as string) || email?.split("@")[0] || "Demo User";
+              const role = (credentials?.role as string) || "voter";
+
+              if (!email) return null;
+
+              const isAdmin =
+                role === "admin" ||
+                (process.env.ADMIN_EMAILS || "")
+                  .split(",")
+                  .map((e) => e.trim().toLowerCase())
+                  .includes(email);
+
+              return {
+                id: email,
+                email,
+                name,
+                isAdmin,
+              } as any;
+            },
+          }),
+        ]
+      : []),
+  ],
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account }) {

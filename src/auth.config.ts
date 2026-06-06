@@ -1,9 +1,10 @@
 import type { NextAuthConfig } from "next-auth";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
-import Credentials from "next-auth/providers/credentials";
 
 export const isDemoMode = process.env.DEMO_MODE === "true";
 
+// Edge-safe base config. NO Credentials provider here — it's not edge-compatible.
+// Credentials is added in auth.ts (Node.js runtime).
 export const authConfig = {
   trustHost: true,
   secret: process.env.AUTH_SECRET,
@@ -12,54 +13,18 @@ export const authConfig = {
     signIn: "/login",
     error: "/login",
   },
-  providers: [
-    ...(isDemoMode
-      ? [
-          Credentials({
-            id: "demo",
-            name: "Demo Login",
-            credentials: {
-              email: { label: "Email", type: "email" },
-              name: { label: "Nama", type: "text" },
-              role: { label: "Role", type: "text" },
-            },
-            async authorize(credentials) {
-              const email = (credentials?.email as string)?.toLowerCase();
-              const name = (credentials?.name as string) || email?.split("@")[0] || "Demo User";
-              const role = (credentials?.role as string) || "voter";
-
-              if (!email) return null;
-
-              const isAdmin =
-                role === "admin" ||
-                (process.env.ADMIN_EMAILS || "")
-                  .split(",")
-                  .map((e) => e.trim().toLowerCase())
-                  .includes(email);
-
-              return {
-                id: email,
-                email,
-                name,
-                isAdmin,
-              } as any;
-            },
-          }),
-        ]
-      : []),
-    ...(isDemoMode
-      ? []
-      : [
-          MicrosoftEntraID({
-            clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
-            clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
-            issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
-            authorization: {
-              params: { scope: "openid profile email User.Read" },
-            },
-          }),
-        ]),
-  ],
+  providers: isDemoMode
+    ? []
+    : [
+        MicrosoftEntraID({
+          clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
+          clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
+          issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
+          authorization: {
+            params: { scope: "openid profile email User.Read" },
+          },
+        }),
+      ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
