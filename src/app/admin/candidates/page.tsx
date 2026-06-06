@@ -267,7 +267,7 @@ export default function CandidatesManagementPage() {
             <Card>
               <CardContent className="py-12 text-center space-y-3">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto" />
-                <p className="text-muted-foreground">Belum ada kandidat. Klik "Tambah Kandidat" untuk memulai.</p>
+                <p className="text-muted-foreground">Belum ada kandidat. Klik &quot;Tambah Kandidat&quot; untuk memulai.</p>
               </CardContent>
             </Card>
           ) : (
