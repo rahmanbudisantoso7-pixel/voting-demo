@@ -1,10 +1,9 @@
 import type { NextAuthConfig } from "next-auth";
-import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 
 export const isDemoMode = process.env.DEMO_MODE === "true";
 
-// Edge-safe base config. NO Credentials provider here — it's not edge-compatible.
-// Credentials is added in auth.ts (Node.js runtime).
+// Edge-safe base config. NO provider imports here.
+// All providers (Credentials, Microsoft) are added in auth.ts (Node.js runtime only).
 export const authConfig = {
   trustHost: true,
   secret: process.env.AUTH_SECRET,
@@ -13,18 +12,7 @@ export const authConfig = {
     signIn: "/login",
     error: "/login",
   },
-  providers: isDemoMode
-    ? []
-    : [
-        MicrosoftEntraID({
-          clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
-          clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
-          issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
-          authorization: {
-            params: { scope: "openid profile email User.Read" },
-          },
-        }),
-      ],
+  providers: [],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
